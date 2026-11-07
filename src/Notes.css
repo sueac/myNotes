@@ -1,0 +1,236 @@
+.app {
+  min-height: 100svh;
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+  background: radial-gradient(circle at 50% 0%, #1f2130 0%, #15161d 70%);
+}
+
+.widget {
+  width: 100%;
+  max-width: 400px;
+  min-height: calc(100svh - 32px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px 22px 20px;
+  border-radius: 28px;
+  background: #1d1f27;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+  text-align: center;
+  font-weight: 700;
+}
+
+.subtle {
+  color: #a9adbf;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Clock */
+.clock .time {
+  font-size: 68px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.clock .date {
+  margin-top: 14px;
+  font-size: 20px;
+  font-weight: 800;
+}
+.clock .subtle {
+  margin-top: 4px;
+}
+
+/* Note navigation (styled like the media controls) */
+.player {
+  display: flex;
+  gap: 36px;
+  margin-top: 28px;
+}
+.icon-btn {
+  background: none;
+  border: none;
+  padding: 6px;
+  cursor: pointer;
+  color: #b56cf0;
+  border-radius: 12px;
+  display: inline-flex;
+}
+.icon-btn:hover {
+  background: rgba(181, 108, 240, 0.12);
+}
+.icon-btn:focus-visible,
+.text-btn:focus-visible,
+.note-row:focus-visible {
+  outline: 2px solid #b56cf0;
+  outline-offset: 2px;
+}
+
+.now-title {
+  margin-top: 14px;
+  font-size: 22px;
+  font-weight: 800;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.now-title + .subtle {
+  margin-top: 2px;
+}
+
+/* Editor */
+.editor {
+  width: 100%;
+  margin-top: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+.title-input,
+.search-input,
+.editor textarea {
+  width: 100%;
+  font: inherit;
+  font-weight: 700;
+  color: inherit;
+  background: #171922;
+  border: 1px solid #3a3e4f;
+  border-radius: 14px;
+  padding: 10px 14px;
+  outline: none;
+}
+.title-input:focus,
+.search-input:focus,
+.editor textarea:focus {
+  border-color: #6fe3f5;
+}
+.title-input {
+  font-size: 18px;
+  font-weight: 800;
+}
+.editor textarea {
+  flex: 1;
+  min-height: 200px;
+  resize: vertical;
+  line-height: 1.5;
+  font-size: 16px;
+}
+.editor-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Note list */
+.list-wrap {
+  width: 100%;
+  margin-top: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+}
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+.note-row {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+  font: inherit;
+  font-weight: 700;
+  color: inherit;
+  background: #171922;
+  border: 1px solid #3a3e4f;
+  border-radius: 14px;
+  padding: 10px 14px;
+  cursor: pointer;
+}
+.note-row:hover {
+  border-color: #4fe0c2;
+}
+.note-title {
+  font-size: 16px;
+  font-weight: 800;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.note-preview {
+  font-size: 14px;
+  font-weight: 700;
+  color: #c3c7d8;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.note-time {
+  font-size: 13px;
+  font-weight: 700;
+  color: #9a9eb3;
+}
+.empty {
+  padding: 14px;
+}
+
+/* Bottom actions */
+.actions {
+  margin-top: auto;
+  padding-top: 24px;
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+}
+.text-btn {
+  background: none;
+  border: none;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+.text-btn.blue {
+  color: #5b7cff;
+}
+.text-btn.blue.on,
+.text-btn.blue:hover {
+  background: rgba(91, 124, 255, 0.14);
+}
+.text-btn.pink {
+  color: #f0707f;
+}
+.text-btn.pink:hover {
+  background: rgba(240, 112, 127, 0.14);
+}
+
+@media (max-width: 380px) {
+  .clock .time {
+    font-size: 56px;
+  }
+  .player {
+    gap: 24px;
+  }
+}
