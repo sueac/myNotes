@@ -126,6 +126,72 @@
   align-items: center;
 }
 
+/* Rich text editor */
+.rich {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+}
+.rich-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.rich-btn {
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  color: #c3c7d8;
+  background: #171922;
+  border: 1px solid #3a3e4f;
+  border-radius: 10px;
+  padding: 6px 10px;
+  min-width: 36px;
+  cursor: pointer;
+}
+.rich-btn:hover {
+  border-color: #6fe3f5;
+}
+.rich-btn.on {
+  color: #1d1f27;
+  background: #6fe3f5;
+  border-color: #6fe3f5;
+}
+.rich-btn:focus-visible {
+  outline: 2px solid #6fe3f5;
+  outline-offset: 2px;
+}
+.rich-body {
+  flex: 1;
+  min-height: 200px;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+  text-align: left;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.5;
+  color: inherit;
+  background: #171922;
+  border: 1px solid #3a3e4f;
+  border-radius: 14px;
+  padding: 10px 14px;
+  outline: none;
+}
+.rich-body:focus {
+  border-color: #6fe3f5;
+}
+.rich-body:empty::before {
+  content: attr(data-placeholder);
+  color: #7d8196;
+  pointer-events: none;
+}
+.rich-body ul {
+  margin: 4px 0;
+  padding-left: 24px;
+}
+
 /* Note list */
 .list-wrap {
   width: 100%;
