@@ -292,6 +292,113 @@
   background: rgba(240, 112, 127, 0.14);
 }
 
+/* Workspace: main window, splitter, and sidespace side by side */
+.workspace {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: stretch;
+}
+.workspace > .widget {
+  max-width: none;
+  flex: none;
+}
+.splitter {
+  flex: none;
+  width: 16px;
+  cursor: col-resize;
+  touch-action: none;
+  display: flex;
+  justify-content: center;
+}
+.splitter::after {
+  content: '';
+  width: 4px;
+  margin-block: 48px;
+  border-radius: 2px;
+  background: #3a3e4f;
+}
+.splitter:hover::after,
+.splitter:active::after {
+  background: #6fe3f5;
+}
+
+/* Sidespace: drop zone for notes kept open beside the main window */
+.sidespace {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 28px 12px 20px;
+  overflow: auto;
+  border: 2px dashed #2a2d3a;
+  border-radius: 28px;
+  transition: border-color 0.15s, background 0.15s;
+}
+.sidespace.over {
+  border-color: #4fe0c2;
+  background: rgba(79, 224, 194, 0.06);
+}
+.side-hint {
+  width: 100%;
+  padding-top: 40px;
+  text-align: center;
+}
+.side-note {
+  width: 320px;
+  height: 420px;
+  min-width: 240px;
+  min-height: 220px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  overflow: auto;
+  resize: both;
+  text-align: left;
+  font-weight: 700;
+  border-radius: 24px;
+  background: #1d1f27;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+}
+.side-head {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.side-head .title-input {
+  flex: 1;
+  min-width: 0;
+}
+.side-note .rich {
+  flex: 1;
+}
+.side-note .rich-body {
+  min-height: 80px;
+}
+.list > li[draggable='true'] {
+  cursor: grab;
+}
+
+@media (max-width: 720px) {
+  .workspace {
+    flex-direction: column;
+  }
+  .workspace > .widget {
+    width: 100% !important;
+  }
+  .splitter {
+    display: none;
+  }
+  .sidespace {
+    min-height: 200px;
+  }
+}
+
 @media (max-width: 380px) {
   .clock .time {
     font-size: 56px;

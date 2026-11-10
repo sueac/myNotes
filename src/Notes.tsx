@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { CSSProperties, KeyboardEvent, ReactNode } from 'react'
-import type { Session } from '@supabase/supabase-js'
+import type { CSSProperties, DragEvent, KeyboardEvent, PointerEvent, ReactNode } from 'react'
+import type { Session, User } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import './Notes.css'
 
@@ -415,12 +415,55 @@ function SignIn() {
   )
 }
 
-function NotesApp({ userId }: { userId: string }) {
+type NotePatch = Partial<Pick<Note, 'title' | 'body'>>
+
+// A note kept open in the sidespace, showing its full contents.
+function SideNote({
+  note,
+  onChange,
+  onClose,
+}: {
+  note: Note
+  onChange: (patch: NotePatch) => void
+  onClose: () => void
+}) {
+  return (
+    <article className="side-note">
+      <div className="side-head">
+        <input
+          className="title-input"
+          placeholder="Title"
+          aria-label="Note title"
+          value={note.title}
+          onChange={(e) => onChange({ title: e.target.value })}
+        />
+        <button className="icon-btn purple" onClick={onClose} aria-label="Close note">
+          <Icon d={ICON.exit} size={18} />
+        </button>
+      </div>
+      <RichEditor body={note.body} onChange={(html) => onChange({ body: sanitizeHtml(html) })} />
+      <div className="editor-foot">
+        <span className="subtle">{wordCount(note.body)} words</span>
+      </div>
+    </article>
+  )
+}
+
+const WIDGET_DEFAULT = 400
+const WIDGET_MIN = 300
+const SIDESPACE_MIN = 200
+
+function NotesApp({ user }: { user: User }) {
+  const userId = user.id
+  const displayName = user.user_metadata.full_name ?? user.email ?? 'your account'
   const { notes, setNotes, ready, syncError, removeNote } = useNotes(userId)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [query, setQuery] = useState('')
   const [searchOpen, setSearchOpen] = useState(false)
   const [now, setNow] = useState(() => new Date())
+  const [pinnedIds, setPinnedIds] = useState<string[]>([])
+  const [widgetWidth, setWidgetWidth] = useState(WIDGET_DEFAULT)
+  const [dropActive, setDropActive] = useState(false)
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000)
@@ -443,15 +486,43 @@ function NotesApp({ userId }: { userId: string }) {
   const active = notes.find((n) => n.id === activeId) ?? null
   const activeIndex = active ? visible.findIndex((n) => n.id === active.id) : -1
 
-  const dayOfYear = Math.floor(
-    (now.getTime() - new Date(now.getFullYear(), 0, 0).getTime()) / 86_400_000,
-  )
+  const pinnedNotes = pinnedIds.flatMap((id) => {
+    const n = notes.find((x) => x.id === id)
+    return n ? [n] : []
+  })
 
-  function updateActive(patch: Partial<Pick<Note, 'title' | 'body'>>) {
-    if (!active) return
+  function updateNote(id: string, patch: NotePatch) {
     setNotes((prev) =>
-      prev.map((n) => (n.id === active.id ? { ...n, ...patch, updated: Date.now() } : n)),
+      prev.map((n) => (n.id === id ? { ...n, ...patch, updated: Date.now() } : n)),
     )
+  }
+
+  function updateActive(patch: NotePatch) {
+    if (active) updateNote(active.id, patch)
+  }
+
+  function pinNote(id: string) {
+    setPinnedIds((prev) => (prev.includes(id) ? prev : [...prev, id]))
+  }
+
+  function unpinNote(id: string) {
+    setPinnedIds((prev) => prev.filter((p) => p !== id))
+  }
+
+  function dropNote(e: DragEvent<HTMLElement>) {
+    e.preventDefault()
+    setDropActive(false)
+    const id = e.dataTransfer.getData('text/plain')
+    if (notes.some((n) => n.id === id)) pinNote(id)
+  }
+
+  // Dragging the splitter sets the main window's width.
+  function resizeWidget(e: PointerEvent<HTMLDivElement>) {
+    if (!e.currentTarget.hasPointerCapture(e.pointerId)) return
+    const ws = e.currentTarget.parentElement?.getBoundingClientRect()
+    if (!ws) return
+    const width = Math.min(Math.max(e.clientX - ws.left, WIDGET_MIN), ws.width - SIDESPACE_MIN)
+    setWidgetWidth(Math.round(width))
   }
 
   function createNote() {
@@ -501,7 +572,8 @@ function NotesApp({ userId }: { userId: string }) {
 
   return (
     <main className="app">
-      <section className="widget">
+      <div className="workspace">
+      <section className="widget" style={{ width: widgetWidth }}>
         <header className="clock">
           <div className="time">
             {pad(now.getHours())} {pad(now.getMinutes())}
@@ -513,7 +585,7 @@ function NotesApp({ userId }: { userId: string }) {
               day: 'numeric',
             })}
           </div>
-          <div className="subtle">{dayOfYear} days into the year</div>
+          <div className="subtle">Signed in as: {displayName}</div>
         </header>
 
         <nav className="player" aria-label="Note navigation">
@@ -591,7 +663,14 @@ function NotesApp({ userId }: { userId: string }) {
                 </li>
               )}
               {visible.map((n) => (
-                <li key={n.id}>
+                <li
+                  key={n.id}
+                  draggable
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData('text/plain', n.id)
+                    e.dataTransfer.effectAllowed = 'move'
+                  }}
+                >
                   <button className="note-row" onClick={() => setActiveId(n.id)}>
                     <span className="note-title">{n.title || 'Untitled'}</span>
                     <span className="note-preview">{preview(n.body)}</span>
@@ -624,6 +703,44 @@ function NotesApp({ userId }: { userId: string }) {
           )}
         </footer>
       </section>
+
+      <div
+        className="splitter"
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize main window"
+        onPointerDown={(e) => e.currentTarget.setPointerCapture(e.pointerId)}
+        onPointerMove={resizeWidget}
+        onPointerUp={(e) => e.currentTarget.releasePointerCapture(e.pointerId)}
+        onPointerCancel={(e) => e.currentTarget.releasePointerCapture(e.pointerId)}
+      />
+
+      <aside
+        className={`sidespace ${dropActive ? 'over' : ''}`}
+        aria-label="Sidespace"
+        onDragOver={(e) => {
+          e.preventDefault()
+          e.dataTransfer.dropEffect = 'move'
+          setDropActive(true)
+        }}
+        onDragLeave={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDropActive(false)
+        }}
+        onDrop={dropNote}
+      >
+        {pinnedNotes.length === 0 && (
+          <div className="side-hint subtle">Drag a note here to keep it open beside your list.</div>
+        )}
+        {pinnedNotes.map((n) => (
+          <SideNote
+            key={n.id}
+            note={n}
+            onChange={(patch) => updateNote(n.id, patch)}
+            onClose={() => unpinNote(n.id)}
+          />
+        ))}
+      </aside>
+      </div>
     </main>
   )
 }
@@ -643,7 +760,7 @@ function Notes() {
 
   if (session === null) return <SignIn />
 
-  return <NotesApp userId={session.user.id} />
+  return <NotesApp user={session.user} />
 }
 
 export default Notes

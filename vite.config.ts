@@ -3,5 +3,6 @@ import { defineConfig } from 'vite'
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
-})
+  envPrefix: ['VITE_', 'NEXT_PUBLIC_'],
+  plugins: [react(), /* ...VitePWA etc. */],
+});
