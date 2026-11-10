@@ -92,8 +92,7 @@
   flex: 1;
 }
 .title-input,
-.search-input,
-.editor textarea {
+.search-input {
   width: 100%;
   font: inherit;
   font-weight: 700;
@@ -105,20 +104,12 @@
   outline: none;
 }
 .title-input:focus,
-.search-input:focus,
-.editor textarea:focus {
+.search-input:focus {
   border-color: #6fe3f5;
 }
 .title-input {
   font-size: 18px;
   font-weight: 800;
-}
-.editor textarea {
-  flex: 1;
-  min-height: 200px;
-  resize: vertical;
-  line-height: 1.5;
-  font-size: 16px;
 }
 .editor-foot {
   display: flex;

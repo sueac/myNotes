@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { CSSProperties, DragEvent, KeyboardEvent, PointerEvent, ReactNode } from 'react'
+import type { DragEvent, KeyboardEvent, PointerEvent, ReactNode } from 'react'
 import type { Session, User } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import './Notes.css'
@@ -233,13 +233,11 @@ const NO_FORMATS = {
 function ToolButton({
   title,
   active = false,
-  style,
   onAction,
   children,
 }: {
   title: string
   active?: boolean
-  style?: CSSProperties
   onAction: () => void
   children: ReactNode
 }) {
@@ -250,7 +248,6 @@ function ToolButton({
       title={title}
       aria-label={title}
       aria-pressed={active}
-      style={style}
       // Keep the text selection in the editor while the button is clicked.
       onMouseDown={(e) => e.preventDefault()}
       onClick={onAction}
@@ -417,6 +414,27 @@ function SignIn() {
 
 type NotePatch = Partial<Pick<Note, 'title' | 'body'>>
 
+// The body editor plus its word count. Used by the main editor and by side notes.
+function NoteBody({
+  note,
+  onChange,
+  children,
+}: {
+  note: Note
+  onChange: (patch: NotePatch) => void
+  children?: ReactNode
+}) {
+  return (
+    <>
+      <RichEditor body={note.body} onChange={(html) => onChange({ body: sanitizeHtml(html) })} />
+      <div className="editor-foot">
+        <span className="subtle">{wordCount(note.body)} words</span>
+        {children}
+      </div>
+    </>
+  )
+}
+
 // A note kept open in the sidespace, showing its full contents.
 function SideNote({
   note,
@@ -441,10 +459,7 @@ function SideNote({
           <Icon d={ICON.exit} size={18} />
         </button>
       </div>
-      <RichEditor body={note.body} onChange={(html) => onChange({ body: sanitizeHtml(html) })} />
-      <div className="editor-foot">
-        <span className="subtle">{wordCount(note.body)} words</span>
-      </div>
+      <NoteBody note={note} onChange={onChange} />
     </article>
   )
 }
@@ -573,173 +588,168 @@ function NotesApp({ user }: { user: User }) {
   return (
     <main className="app">
       <div className="workspace">
-      <section className="widget" style={{ width: widgetWidth }}>
-        <header className="clock">
-          <div className="time">
-            {pad(now.getHours())} {pad(now.getMinutes())}
-          </div>
-          <div className="date">
-            {now.toLocaleDateString(undefined, {
-              weekday: 'long',
-              month: 'long',
-              day: 'numeric',
-            })}
-          </div>
-          <div className="subtle">Signed in as: {displayName}</div>
-        </header>
-
-        <nav className="player" aria-label="Note navigation">
-          <button
-            className="icon-btn purple"
-            onClick={() => step(-1)}
-            aria-label="Previous note"
-          >
-            <Icon d={ICON.prev} size={28} />
-          </button>
-          <button
-            className="icon-btn purple"
-            onClick={createNote}
-            aria-label="New note"
-            disabled={!ready}
-          >
-            <Icon d={ICON.plus} size={28} />
-          </button>
-          <button
-            className="icon-btn purple"
-            onClick={() => step(1)}
-            aria-label="Next note"
-          >
-            <Icon d={ICON.next} size={28} />
-          </button>
-        </nav>
-        <div className="now-title">{active ? active.title || 'Untitled' : 'Notes'}</div>
-        <div className="subtle">
-          {active ? `Edited ${formatTime(active.updated)}` : `${notes.length} notes`}
-        </div>
-        {syncError && <div className="subtle">{syncError}</div>}
-
-        {showEditor && active && (
-          <div className="editor">
-            <input
-              className="title-input"
-              placeholder="Title"
-              value={active.title}
-              onChange={(e) => updateActive({ title: e.target.value })}
-            />
-            <RichEditor
-              key={active.id}
-              body={active.body}
-              onChange={(html) => updateActive({ body: sanitizeHtml(html) })}
-            />
-            <div className="editor-foot">
-              <span className="subtle">{wordCount(active.body)} words</span>
-              <button className="text-btn pink" onClick={deleteActive}>
-                <Icon d={ICON.trash} size={18} /> Delete
-              </button>
+        <section className="widget" style={{ width: widgetWidth }}>
+          <header className="clock">
+            <div className="time">
+              {pad(now.getHours())} {pad(now.getMinutes())}
             </div>
-          </div>
-        )}
+            <div className="date">
+              {now.toLocaleDateString(undefined, {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric',
+              })}
+            </div>
+            <div className="subtle">Signed in as: {displayName}</div>
+          </header>
 
-        {showList && (
-          <div className="list-wrap">
-            {searchOpen && (
-              <input
-                className="search-input"
-                type="search"
-                placeholder="Search notes..."
-                autoFocus
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
-            )}
-            <ul className="list">
-              {visible.length === 0 && (
-                <li className="empty subtle">
-                  {!ready
-                    ? 'Loading notes...'
-                    : query
-                      ? 'No matches'
-                      : 'No notes yet. Tap + to add one.'}
-                </li>
-              )}
-              {visible.map((n) => (
-                <li
-                  key={n.id}
-                  draggable
-                  onDragStart={(e) => {
-                    e.dataTransfer.setData('text/plain', n.id)
-                    e.dataTransfer.effectAllowed = 'move'
-                  }}
-                >
-                  <button className="note-row" onClick={() => setActiveId(n.id)}>
-                    <span className="note-title">{n.title || 'Untitled'}</span>
-                    <span className="note-preview">{preview(n.body)}</span>
-                    <span className="note-time">{formatTime(n.updated)}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        <footer className="actions">
-          {showList && (
-            <>
-              <button
-                className={`text-btn blue ${searchOpen ? 'on' : ''}`}
-                onClick={toggleSearch}
-              >
-                <Icon d={ICON.search} size={20} /> Search
-              </button>
-              <button className="text-btn" onClick={() => supabase.auth.signOut()}>
-                Sign out
-              </button>
-            </>
-          )}
-          {showEditor && (
-            <button className="text-btn pink" onClick={exit}>
-              <Icon d={ICON.exit} size={20} /> Exit
+          <nav className="player" aria-label="Note navigation">
+            <button
+              className="icon-btn purple"
+              onClick={() => step(-1)}
+              aria-label="Previous note"
+            >
+              <Icon d={ICON.prev} size={28} />
             </button>
+            <button
+              className="icon-btn purple"
+              onClick={createNote}
+              aria-label="New note"
+              disabled={!ready}
+            >
+              <Icon d={ICON.plus} size={28} />
+            </button>
+            <button
+              className="icon-btn purple"
+              onClick={() => step(1)}
+              aria-label="Next note"
+            >
+              <Icon d={ICON.next} size={28} />
+            </button>
+          </nav>
+          <div className="now-title">{active ? active.title || 'Untitled' : 'Notes'}</div>
+          <div className="subtle">
+            {active ? `Edited ${formatTime(active.updated)}` : `${notes.length} notes`}
+          </div>
+          {syncError && <div className="subtle">{syncError}</div>}
+
+          {showEditor && active && (
+            <div className="editor">
+              <input
+                className="title-input"
+                placeholder="Title"
+                aria-label="Note title"
+                value={active.title}
+                onChange={(e) => updateActive({ title: e.target.value })}
+              />
+              <NoteBody key={active.id} note={active} onChange={updateActive}>
+                <button className="text-btn pink" onClick={deleteActive}>
+                  <Icon d={ICON.trash} size={18} /> Delete
+                </button>
+              </NoteBody>
+            </div>
           )}
-        </footer>
-      </section>
 
-      <div
-        className="splitter"
-        role="separator"
-        aria-orientation="vertical"
-        aria-label="Resize main window"
-        onPointerDown={(e) => e.currentTarget.setPointerCapture(e.pointerId)}
-        onPointerMove={resizeWidget}
-        onPointerUp={(e) => e.currentTarget.releasePointerCapture(e.pointerId)}
-        onPointerCancel={(e) => e.currentTarget.releasePointerCapture(e.pointerId)}
-      />
+          {showList && (
+            <div className="list-wrap">
+              {searchOpen && (
+                <input
+                  className="search-input"
+                  type="search"
+                  placeholder="Search notes..."
+                  autoFocus
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                />
+              )}
+              <ul className="list">
+                {visible.length === 0 && (
+                  <li className="empty subtle">
+                    {!ready
+                      ? 'Loading notes...'
+                      : query
+                        ? 'No matches'
+                        : 'No notes yet. Tap + to add one.'}
+                  </li>
+                )}
+                {visible.map((n) => (
+                  <li
+                    key={n.id}
+                    draggable
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData('text/plain', n.id)
+                      e.dataTransfer.effectAllowed = 'move'
+                    }}
+                  >
+                    <button className="note-row" onClick={() => setActiveId(n.id)}>
+                      <span className="note-title">{n.title || 'Untitled'}</span>
+                      <span className="note-preview">{preview(n.body)}</span>
+                      <span className="note-time">{formatTime(n.updated)}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
-      <aside
-        className={`sidespace ${dropActive ? 'over' : ''}`}
-        aria-label="Sidespace"
-        onDragOver={(e) => {
-          e.preventDefault()
-          e.dataTransfer.dropEffect = 'move'
-          setDropActive(true)
-        }}
-        onDragLeave={(e) => {
-          if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDropActive(false)
-        }}
-        onDrop={dropNote}
-      >
-        {pinnedNotes.length === 0 && (
-          <div className="side-hint subtle">Drag a note here to keep it open beside your list.</div>
-        )}
-        {pinnedNotes.map((n) => (
-          <SideNote
-            key={n.id}
-            note={n}
-            onChange={(patch) => updateNote(n.id, patch)}
-            onClose={() => unpinNote(n.id)}
-          />
-        ))}
-      </aside>
+          <footer className="actions">
+            {showList && (
+              <>
+                <button
+                  className={`text-btn blue ${searchOpen ? 'on' : ''}`}
+                  onClick={toggleSearch}
+                >
+                  <Icon d={ICON.search} size={20} /> Search
+                </button>
+                <button className="text-btn" onClick={() => supabase.auth.signOut()}>
+                  Sign out
+                </button>
+              </>
+            )}
+            {showEditor && (
+              <button className="text-btn pink" onClick={exit}>
+                <Icon d={ICON.exit} size={20} /> Exit
+              </button>
+            )}
+          </footer>
+        </section>
+
+        <div
+          className="splitter"
+          role="separator"
+          aria-orientation="vertical"
+          aria-label="Resize main window"
+          onPointerDown={(e) => e.currentTarget.setPointerCapture(e.pointerId)}
+          onPointerMove={resizeWidget}
+          onPointerUp={(e) => e.currentTarget.releasePointerCapture(e.pointerId)}
+          onPointerCancel={(e) => e.currentTarget.releasePointerCapture(e.pointerId)}
+        />
+
+        <aside
+          className={`sidespace ${dropActive ? 'over' : ''}`}
+          aria-label="Sidespace"
+          onDragOver={(e) => {
+            e.preventDefault()
+            e.dataTransfer.dropEffect = 'move'
+            setDropActive(true)
+          }}
+          onDragLeave={(e) => {
+            if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setDropActive(false)
+          }}
+          onDrop={dropNote}
+        >
+          {pinnedNotes.length === 0 && (
+            <div className="side-hint subtle">Drag a note here to keep it open beside your list.</div>
+          )}
+          {pinnedNotes.map((n) => (
+            <SideNote
+              key={n.id}
+              note={n}
+              onChange={(patch) => updateNote(n.id, patch)}
+              onClose={() => unpinNote(n.id)}
+            />
+          ))}
+        </aside>
       </div>
     </main>
   )
