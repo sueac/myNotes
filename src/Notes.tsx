@@ -10,40 +10,10 @@ import {useSession} from './hooks/useSession.ts'
 import {Icon, ICON} from './components/Icon.tsx'
 import { NoteBody } from './components/NoteBody.tsx'
 import { SideNote } from './components/SideNote.tsx'
+import { SignIn } from './components/SignIn.tsx'
 import './Notes.css'
 
 
-function SignIn() {
-  const [message, setMessage] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
-
-  async function signIn() {
-    setBusy(true)
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: window.location.origin },
-    })
-    if (error) {
-      setMessage(error.message)
-      setBusy(false)
-    }
-  }
-
-  return (
-    <main className="app">
-      <section className="widget">
-        <div className="now-title">Notes</div>
-        <div className="subtle">Sign in to sync your notes across devices.</div>
-        {message && <div className="subtle">{message}</div>}
-        <footer className="actions">
-          <button className="text-btn blue" onClick={signIn} disabled={busy}>
-            Sign in with Google
-          </button>
-        </footer>
-      </section>
-    </main>
-  )
-}
 
 const WIDGET_DEFAULT = 400
 const WIDGET_MIN = 300
