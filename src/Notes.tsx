@@ -5,16 +5,9 @@ import { supabase } from './lib/supabase'
 import { sanitizeHtml, toEditorHtml, wordCount, htmlToText, preview } from './lib/html.ts'
 import {pad, formatTime} from './lib/format.ts'
 import {readImage} from './lib/images.ts'
+import type { Note, NoteRow, NotePatch } from './types'
 import './Notes.css'
 
-type Note = {
-  id: string
-  title: string
-  body: string
-  updated: number
-}
-
-type NoteRow = Note & { user_id?: string }
 
 const fromRow = (r: NoteRow): Note => ({
   id: r.id,
@@ -22,7 +15,6 @@ const fromRow = (r: NoteRow): Note => ({
   body: r.body,
   updated: Number(r.updated),
 })
-
 
 // Icon paths (24x24 grid, stroked)
 const ICON = {
@@ -318,7 +310,6 @@ function SignIn() {
   )
 }
 
-type NotePatch = Partial<Pick<Note, 'title' | 'body'>>
 
 // The body editor plus its word count. Used by the main editor and by side notes.
 function NoteBody({
