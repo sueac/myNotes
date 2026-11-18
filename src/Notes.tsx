@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { DragEvent, PointerEvent, ReactNode } from 'react'
+import type { DragEvent, PointerEvent } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
-import { sanitizeHtml, wordCount, htmlToText, preview } from './lib/html.ts'
+import { htmlToText, preview } from './lib/html.ts'
 import {pad, formatTime} from './lib/format.ts'
 import type { Note, NotePatch } from './types'
 import { useNotes } from './hooks/useNotes.ts'
 import {useSession} from './hooks/useSession.ts'
 import {Icon, ICON} from './components/Icon.tsx'
-import {RichEditor} from './components/RichEditor.tsx'
+import { NoteBody } from './components/NoteBody.tsx'
 import './Notes.css'
 
 
@@ -44,27 +44,6 @@ function SignIn() {
   )
 }
 
-
-// The body editor plus its word count. Used by the main editor and by side notes.
-function NoteBody({
-  note,
-  onChange,
-  children,
-}: {
-  note: Note
-  onChange: (patch: NotePatch) => void
-  children?: ReactNode
-}) {
-  return (
-    <>
-      <RichEditor body={note.body} onChange={(html) => onChange({ body: sanitizeHtml(html) })} />
-      <div className="editor-foot">
-        <span className="subtle">{wordCount(note.body)} words</span>
-        {children}
-      </div>
-    </>
-  )
-}
 
 // A note kept open in the sidespace, showing its full contents.
 function SideNote({
