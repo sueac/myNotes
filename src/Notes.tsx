@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { DragEvent, KeyboardEvent, PointerEvent, ReactNode } from 'react'
-import type { Session, User } from '@supabase/supabase-js'
+import type { User } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import { sanitizeHtml, toEditorHtml, wordCount, htmlToText, preview } from './lib/html.ts'
 import {pad, formatTime} from './lib/format.ts'
 import {readImage} from './lib/images.ts'
 import type { Note, NotePatch } from './types'
 import { useNotes } from './hooks/useNotes.ts'
+import {useSession} from './hooks/useSession.ts'
 import './Notes.css'
 
 
@@ -38,18 +39,6 @@ function Icon({ d, size = 22 }: { d: string; size?: number }) {
   )
 }
 
-// Tracks the signed-in user. undefined = still checking, null = signed out.
-function useSession() {
-  const [session, setSession] = useState<Session | null | undefined>(undefined)
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session))
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, s) => setSession(s))
-    return () => sub.subscription.unsubscribe()
-  }, [])
-
-  return session
-}
 
 const NO_FORMATS = {
   bold: false,
