@@ -3,6 +3,7 @@ import type { DragEvent, KeyboardEvent, PointerEvent, ReactNode } from 'react'
 import type { Session, User } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import { sanitizeHtml, toEditorHtml, wordCount, htmlToText, preview } from './lib/html.ts'
+import {pad, formatTime} from './lib/format.ts'
 import './Notes.css'
 
 type Note = {
@@ -23,7 +24,6 @@ const fromRow = (r: NoteRow): Note => ({
 
 const MAX_IMAGE_PX = 1200
 
-const pad = (n: number) => String(n).padStart(2, '0')
 
 // Scales a picked image down and returns it as a data URL, to keep notes small.
 function readImage(file: File): Promise<string> {
@@ -54,13 +54,7 @@ function readImage(file: File): Promise<string> {
     img.src = url
   })
 }
-const formatTime = (ts: number) =>
-  new Date(ts).toLocaleString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+
 
 // Icon paths (24x24 grid, stroked)
 const ICON = {
