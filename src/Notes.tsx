@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { DragEvent, PointerEvent } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
+import { enableNotifications } from './lib/push'
 import { htmlToText, preview } from './lib/html.ts'
 import {pad, formatTime} from './lib/format.ts'
 import type { Note, NotePatch } from './types'
@@ -30,6 +31,7 @@ function NotesApp({ user }: { user: User }) {
   const [pinnedIds, setPinnedIds] = useState<string[]>([])
   const [widgetWidth, setWidgetWidth] = useState(WIDGET_DEFAULT)
   const [dropActive, setDropActive] = useState(false)
+  const [pushMsg, setPushMsg] = useState<string | null>(null)
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000)
@@ -133,6 +135,16 @@ function NotesApp({ user }: { user: User }) {
     setQuery('')
   }
 
+  async function turnOnAlerts() {
+    setPushMsg(null)
+    try {
+      await enableNotifications(userId)
+      setPushMsg('Alerts are on for this browser.')
+    } catch (err) {
+      setPushMsg(err instanceof Error ? err.message : 'Could not turn on alerts')
+    }
+  }
+
   const showEditor = active !== null
   const showList = !showEditor
 
@@ -183,6 +195,7 @@ function NotesApp({ user }: { user: User }) {
             {active ? `Edited ${formatTime(active.updated)}` : `${notes.length} notes`}
           </div>
           {syncError && <div className="subtle">{syncError}</div>}
+          {pushMsg && <div className="subtle">{pushMsg}</div>}
 
           {showEditor && active && (
             <div className="editor">
@@ -251,6 +264,9 @@ function NotesApp({ user }: { user: User }) {
                   onClick={toggleSearch}
                 >
                   <Icon d={ICON.search} size={20} /> Search
+                </button>
+                <button className="text-btn blue" onClick={turnOnAlerts}>
+                  Enable alerts
                 </button>
                 <button className="text-btn" onClick={() => supabase.auth.signOut()}>
                   Sign out

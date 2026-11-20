@@ -17,3 +17,16 @@ create policy "Users manage their own notes"
   for all
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
+
+
+create table push_subscriptions (
+  endpoint text primary key,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  p256dh text not null,
+  auth text not null
+);
+
+alter table push_subscriptions enable row level security;
+
+create policy "own subscriptions" on push_subscriptions
+  for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
