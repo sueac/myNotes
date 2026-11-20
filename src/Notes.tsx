@@ -8,10 +8,12 @@ import {pad, formatTime} from './lib/format.ts'
 import type { Note, NotePatch } from './types'
 import { useNotes } from './hooks/useNotes.ts'
 import {useSession} from './hooks/useSession.ts'
-import {Icon, ICON} from './components/Icon.tsx'
+import { Icon } from './components/Icon.tsx'
+import { ICON } from './lib/icons.ts'
 import { NoteBody } from './components/NoteBody.tsx'
 import { SideNote } from './components/SideNote.tsx'
 import { SignIn } from './components/SignIn.tsx'
+import { Reminders } from './components/Reminders.tsx'
 import './Notes.css'
 
 
@@ -19,6 +21,8 @@ import './Notes.css'
 const WIDGET_DEFAULT = 400
 const WIDGET_MIN = 300
 const SIDESPACE_MIN = 200
+// Width of the reminders panel plus the space before it. Keep in sync with .reminders in Notes.css.
+const REMINDERS_SPACE = 300 + 16
 
 function NotesApp({ user }: { user: User }) {
   const userId = user.id
@@ -89,7 +93,12 @@ function NotesApp({ user }: { user: User }) {
     if (!e.currentTarget.hasPointerCapture(e.pointerId)) return
     const ws = e.currentTarget.parentElement?.getBoundingClientRect()
     if (!ws) return
-    const width = Math.min(Math.max(e.clientX - ws.left, WIDGET_MIN), ws.width - SIDESPACE_MIN)
+    // The reminders panel stacks under the sidespace on narrow screens, so only reserve room when it sits beside it.
+    const reserved = window.matchMedia('(max-width: 1100px)').matches ? 0 : REMINDERS_SPACE
+    const width = Math.min(
+      Math.max(e.clientX - ws.left, WIDGET_MIN),
+      ws.width - SIDESPACE_MIN - reserved,
+    )
     setWidgetWidth(Math.round(width))
   }
 
@@ -317,6 +326,8 @@ function NotesApp({ user }: { user: User }) {
             />
           ))}
         </aside>
+
+        <Reminders userId={userId} now={now} />
       </div>
     </main>
   )

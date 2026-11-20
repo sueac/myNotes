@@ -9,6 +9,7 @@ A simple sticky-note style notes app built with React, TypeScript and Vite. Sign
 - Rich text formatting, including bullet lists and inline images
 - Drag notes into a sidespace beside the main window to keep them open
 - Resizable main window and side notes
+- A separate reminders panel: add a reminder with a date and time, see which are due or upcoming, and dismiss them
 
 ## Tech stack
 

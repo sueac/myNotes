@@ -92,7 +92,8 @@
   flex: 1;
 }
 .title-input,
-.search-input {
+.search-input,
+.reminder-input {
   width: 100%;
   font: inherit;
   font-weight: 700;
@@ -104,7 +105,8 @@
   outline: none;
 }
 .title-input:focus,
-.search-input:focus {
+.search-input:focus,
+.reminder-input:focus {
   border-color: #6fe3f5;
 }
 .title-input {
@@ -282,6 +284,18 @@
 .text-btn.pink:hover {
   background: rgba(240, 112, 127, 0.14);
 }
+.text-btn:disabled,
+.icon-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+  background: none;
+}
+.icon-btn.pink {
+  color: #f0707f;
+}
+.icon-btn.pink:hover {
+  background: rgba(240, 112, 127, 0.14);
+}
 
 /* Workspace: main window, splitter, and sidespace side by side */
 .workspace {
@@ -373,6 +387,131 @@
 }
 .list > li[draggable='true'] {
   cursor: grab;
+}
+
+/* Reminders: its own panel at the right edge of the workspace.
+   The width and margin are mirrored by REMINDERS_SPACE in Notes.tsx. */
+.reminders {
+  flex: none;
+  width: 300px;
+  margin-left: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 28px 18px 20px;
+  overflow-y: auto;
+  text-align: left;
+  font-weight: 700;
+  border-radius: 28px;
+  background: #1d1f27;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+}
+.reminders-head {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 22px;
+  font-weight: 800;
+  color: #e8e6f0;
+}
+.reminders-head svg {
+  color: #f5c46f;
+}
+.reminder-alerts {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px dashed #3a3e4f;
+  border-radius: 14px;
+}
+.reminder-alerts .text-btn {
+  margin-left: -12px;
+  font-size: 15px;
+}
+.reminder-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.reminder-input {
+  font-size: 15px;
+}
+.reminder-input[type='datetime-local']::-webkit-calendar-picker-indicator {
+  filter: invert(0.8);
+  cursor: pointer;
+}
+.reminder-form .text-btn {
+  align-self: flex-start;
+}
+.reminder-empty {
+  padding: 8px 0;
+}
+.reminder-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.reminder-group-label {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #9a9eb3;
+}
+.reminder-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.reminder-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 8px 10px 14px;
+  background: #171922;
+  border: 1px solid #3a3e4f;
+  border-radius: 14px;
+}
+.reminder-row.due {
+  border-color: #f5c46f;
+  background: rgba(245, 196, 111, 0.08);
+}
+.reminder-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.reminder-text {
+  font-size: 15px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+.reminder-time {
+  font-size: 13px;
+  color: #9a9eb3;
+}
+.reminder-row.due .reminder-time {
+  color: #f5c46f;
+}
+
+/* Medium screens: the reminders panel moves to its own full-width row. */
+@media (max-width: 1100px) {
+  .workspace {
+    flex-wrap: wrap;
+    row-gap: 16px;
+  }
+  .reminders {
+    width: 100%;
+    margin-left: 0;
+  }
 }
 
 @media (max-width: 720px) {

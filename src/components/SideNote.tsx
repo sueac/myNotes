@@ -1,6 +1,7 @@
 import type {Note, NotePatch} from '../types'
 import { NoteBody } from './NoteBody'
-import { Icon, ICON } from './Icon'
+import { ICON } from '../lib/icons.ts'
+import { Icon } from './Icon'
 
 
 // A note kept open in the sidespace, showing its full contents.
